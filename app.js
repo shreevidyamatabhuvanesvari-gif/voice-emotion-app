@@ -1,4 +1,6 @@
-// ===== DATA (LOCKED) =====
+// =====================
+// DATA (LOCKED)
+// =====================
 const EMOTION_RULES = {
   priority: ["thakaan", "dukh", "krodh", "bhram", "khushi"],
   keywords: {
@@ -19,7 +21,9 @@ const LOVE_MAP = {
   prem: "प्रेम"
 };
 
-// ===== HELPERS =====
+// =====================
+// HELPERS
+// =====================
 function detectEmotion(text) {
   const t = text.toLowerCase();
   for (const emo of EMOTION_RULES.priority) {
@@ -33,10 +37,9 @@ function buildResponse(userText) {
   const primary = detectEmotion(userText);
   const loveTone = LOVE_MAP[primary] || "प्रेम";
 
-  // Acknowledgement (App = स्त्री)
+  // App = स्त्री (LOCK)
   const a = "मैं सुन रही हूँ।";
 
-  // Emotion phrase (love-centered)
   let e = "";
   switch (loveTone) {
     case "देखभाल":
@@ -58,18 +61,43 @@ function buildResponse(userText) {
       e = "आप की बात महत्वपूर्ण है।";
   }
 
-  // Love-based closure (non-dependent)
   const c = "मैं आपके साथ हूँ, शांति से।";
-
-  // User quote (unaltered)
   const q = `आप ने कहा: ${userText}`;
 
   return [a, e, c, q].join("\n");
 }
 
-// ===== UI =====
+// =====================
+// TEXT INPUT (Primary)
+// =====================
 document.getElementById("send").onclick = () => {
   const text = document.getElementById("inp").value.trim();
   if (!text) return;
   document.getElementById("out").textContent = buildResponse(text);
 };
+
+// =====================
+// VOICE INPUT (Secondary, निश्चित सीमा में)
+// =====================
+const SpeechRecognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (SpeechRecognition) {
+  const recognition = new SpeechRecognition();
+  recognition.lang = "hi-IN";
+  recognition.interimResults = false;
+  recognition.continuous = false;
+
+  const speakBtn = document.getElementById("speak");
+
+  if (speakBtn) {
+    speakBtn.onclick = () => {
+      recognition.start();
+    };
+  }
+
+  recognition.onresult = (event) => {
+    const spokenText = event.results[0][0].transcript;
+    document.getElementById("inp").value = spokenText;
+  };
+}
