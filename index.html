@@ -1,19 +1,24 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <title>Voice App</title>
+  <meta charset="UTF-8" />
+  <title>Love-Centered Prototype v1</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 16px; }
+    textarea { width: 100%; min-height: 80px; }
+    button { margin-top: 8px; }
+    #out { margin-top: 12px; white-space: pre-line; }
+  </style>
 </head>
 <body>
 
-<h2 id="status">तैयार हूँ</h2>
+<h3>इनपुट (Text प्राथमिक)</h3>
+<textarea id="inp" placeholder="यहाँ लिखें…"></textarea>
+<br/>
+<button id="send">भेजें</button>
 
-<button id="btn">बोलिए</button>
+<div id="out"></div>
 
 <script src="App.js"></script>
-<script>
-  document.getElementById("btn").onclick = startListening;
-</script>
-
 </body>
 </html>
