@@ -1,49 +1,55 @@
-// ===== Speech Recognition =====
+// ===== Voice Recognition =====
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 
 const recognition = new SpeechRecognition();
 recognition.lang = "hi-IN";
 recognition.interimResults = false;
-recognition.continuous = false;
 
 // ===== Text-to-Speech =====
 const synth = window.speechSynthesis;
 
+// 🔒 ROLE LOCK
+const APP_ROLE = "female";   // एप स्वयं
+const USER_ROLE = "male";    // उपयोगकर्ता
+
 function speak(text) {
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = "hi-IN";
-  synth.cancel(); // 🔒 जरूरी: overlapping रोकने के लिए
+
+  const voices = synth.getVoices();
+  const femaleVoice = voices.find(v =>
+    v.lang === "hi-IN" && v.name.toLowerCase().includes("female")
+  );
+
+  if (femaleVoice) {
+    utterance.voice = femaleVoice;
+  }
+
   synth.speak(utterance);
 }
 
-// 🔴 IMPORTANT FIX: button click = direct mic start
 function startListening() {
-  try {
-    recognition.stop(); // अगर पहले से चल रहा हो
-    document.getElementById("status").innerText = "मैं सुन रही हूँ…";
-    recognition.start(); // ✅ VALID USER GESTURE CONTEXT
-  } catch (e) {
-    console.error(e);
-  }
+  document.getElementById("status").innerText = "मैं सुन रही हूँ…";
+  recognition.start();
 }
 
-// ===== Recognition Result =====
 recognition.onresult = function (event) {
   const userSpeech = event.results[0][0].transcript;
 
+  // 🔒 GRAMMAR RULE (FIXED)
   const response =
-    "आप ने कहा: " + userSpeech + "। मैं सुन रही हूँ।";
+    "आप कह रहे हैं: " + userSpeech + "। मैं सुन रही हूँ।";
 
   document.getElementById("status").innerText = response;
   speak(response);
 };
 
 recognition.onerror = function () {
-  speak("मैं सुन रही हूँ। आप फिर से बोल सकते हैं।");
+  speak("मैं सुन रही हूँ, आप फिर से बोलिए।");
 };
 
-// Initial greeting (TTS only — mic NOT started here)
+// Initial greeting
 window.onload = () => {
-  speak("मैं सुन रही हूँ। बोलिए बटन दबाइए।");
+  speak("मैं सुन रही हूँ। आप बोल सकते हैं।");
 };
