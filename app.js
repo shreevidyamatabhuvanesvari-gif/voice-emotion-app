@@ -1,4 +1,5 @@
-// Phase-1: Voice → Text → Voice (no emotion logic)
+// Phase-2: Voice → Text → Emotion (Rule-based) → Voice
+// No assumptions, no memory, no dependency
 
 const startBtn = document.getElementById("startBtn");
 const heardText = document.getElementById("heardText");
@@ -24,8 +25,11 @@ recognition.onresult = (event) => {
   const text = event.results[0][0].transcript;
   heardText.textContent = "आपने कहा: " + text;
 
+  const emotion = detectEmotion(text);
+  const response = buildResponse(emotion);
+
   // Text → Speech
-  const utter = new SpeechSynthesisUtterance(text);
+  const utter = new SpeechSynthesisUtterance(response);
   utter.lang = "hi-IN";
   utter.rate = 0.9;
   speechSynthesis.speak(utter);
@@ -34,3 +38,42 @@ recognition.onresult = (event) => {
 recognition.onerror = () => {
   heardText.textContent = "आवाज़ समझ नहीं पाई। फिर कोशिश करें।";
 };
+
+// -------------------------
+// Emotion Detection (Rules)
+// -------------------------
+function detectEmotion(text) {
+  const t = text.toLowerCase();
+
+  if (t.includes("थक") || t.includes("बहुत हो गया")) {
+    return "THAKAN";
+  }
+  if (t.includes("दुख") || t.includes("अच्छा नहीं")) {
+    return "DUKH";
+  }
+  if (t.includes("समझ नहीं") || t.includes("क्या करूँ")) {
+    return "CONFUSION";
+  }
+  if (t.includes("खुश") || t.includes("अच्छा लगा")) {
+    return "POSITIVE";
+  }
+  return "NEUTRAL";
+}
+
+// -------------------------
+// Safe, Love-based Responses
+// -------------------------
+function buildResponse(emotion) {
+  switch (emotion) {
+    case "THAKAN":
+      return "लगता है आप थकी हुई हैं। थोड़ा ठहरना भी ठीक है।";
+    case "DUKH":
+      return "यह सुनकर मन भारी लगता है। अगर चाहें तो धीरे बोल सकती हैं।";
+    case "CONFUSION":
+      return "उलझन होना स्वाभाविक है। हम इसे धीरे-धीरे देख सकते हैं।";
+    case "POSITIVE":
+      return "यह अच्छा लगा सुनकर। इसी भाव को संभालकर रखें।";
+    default:
+      return "मैं सुन रही हूँ। आप चाहें तो आगे कह सकती हैं।";
+  }
+}
