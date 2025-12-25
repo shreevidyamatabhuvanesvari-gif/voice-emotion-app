@@ -2,13 +2,18 @@
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
-  <title>Voice Companion</title>
+  <title>Voice App</title>
 </head>
 <body>
 
-  <h2 id="status">मैं सुन रही हूँ…</h2>
-  <button onclick="startListening()">बोलिए</button>
+<h2 id="status">तैयार हूँ</h2>
 
-  <script src="App.js"></script>
+<button id="btn">बोलिए</button>
+
+<script src="App.js"></script>
+<script>
+  document.getElementById("btn").onclick = startListening;
+</script>
+
 </body>
 </html>
