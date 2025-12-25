@@ -1,4 +1,4 @@
-// ===== Voice Recognition =====
+// ===== Speech Recognition =====
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -9,23 +9,12 @@ recognition.interimResults = false;
 // ===== Text-to-Speech =====
 const synth = window.speechSynthesis;
 
-// 🔒 ROLE LOCK
-const APP_ROLE = "female";   // एप स्वयं
-const USER_ROLE = "male";    // उपयोगकर्ता
-
+// ===== Roles (LOCKED) =====
+// App speaks as female (self-reference only)
+// User is addressed without gendered verbs (neutral)
 function speak(text) {
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = "hi-IN";
-
-  const voices = synth.getVoices();
-  const femaleVoice = voices.find(v =>
-    v.lang === "hi-IN" && v.name.toLowerCase().includes("female")
-  );
-
-  if (femaleVoice) {
-    utterance.voice = femaleVoice;
-  }
-
   synth.speak(utterance);
 }
 
@@ -37,16 +26,16 @@ function startListening() {
 recognition.onresult = function (event) {
   const userSpeech = event.results[0][0].transcript;
 
-  // 🔒 GRAMMAR RULE (FIXED)
+  // 🔒 GENDER-SAFE RESPONSE (NO feminine/masculine verbs for user)
   const response =
-    "आप कह रहे हैं: " + userSpeech + "। मैं सुन रही हूँ।";
+    "आप ने कहा: " + userSpeech + "। मैं सुन रही हूँ।";
 
   document.getElementById("status").innerText = response;
   speak(response);
 };
 
 recognition.onerror = function () {
-  speak("मैं सुन रही हूँ, आप फिर से बोलिए।");
+  speak("मैं सुन रही हूँ। आप फिर से बोल सकते हैं।");
 };
 
 // Initial greeting
