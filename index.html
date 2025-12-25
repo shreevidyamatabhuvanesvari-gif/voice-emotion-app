@@ -1,25 +1,20 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8" />
-  <title>Love-Centered Prototype v1</title>
-  <style>
-    body { font-family: system-ui, sans-serif; padding: 16px; }
-    textarea { width: 100%; min-height: 80px; }
-    button { margin-top: 8px; }
-    #out { margin-top: 12px; white-space: pre-line; }
-  </style>
+  <meta charset="UTF-8">
+  <title>Voice Emotion App</title>
 </head>
 <body>
 
 <h3>इनपुट (Text प्राथमिक)</h3>
-<textarea id="inp" placeholder="यहाँ लिखें…"></textarea>
-<br/>
+
+<textarea id="inp" rows="4" cols="40" placeholder="यहाँ लिखें…"></textarea>
+<br><br>
+
 <button id="send">भेजें</button>
+<button id="speak">बोलिए</button>
 
-  <button id="speak">🎤 बोलिए</button>
-
-<div id="out"></div>
+<pre id="out"></pre>
 
 <script src="App.js"></script>
 </body>
