@@ -1,92 +1,121 @@
-// ===== ELEMENTS =====
-const btn = document.getElementById("speakBtn");
-const status = document.getElementById("status");
-const textBox = document.getElementById("text");
+// ===============================
+// FRIEND CORE — FINAL
+// PURPOSE: Two-friend style conversation with emotion + memory
+// ===============================
 
-// ===== SPEECH RECOGNITION =====
-const SpeechRecognition =
-  window.SpeechRecognition || window.webkitSpeechRecognition;
+// --------- MEMORY (LOCAL) ---------
+const MEMORY_KEY = "FRIEND_APP_MEMORY";
 
-const recognition = new SpeechRecognition();
-recognition.lang = "hi-IN";
-recognition.interimResults = false;
-recognition.maxAlternatives = 1;
+function loadMemory() {
+  try {
+    return JSON.parse(localStorage.getItem(MEMORY_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
 
-// ===== BUTTON ACTION =====
-btn.onclick = () => {
-  status.textContent = "अंजली सुन रही है…";
-  recognition.start();
+function saveMemory(entry) {
+  const mem = loadMemory();
+  mem.push(entry);
+  localStorage.setItem(MEMORY_KEY, JSON.stringify(mem));
+}
+
+function lastMemory() {
+  const mem = loadMemory();
+  return mem.length > 0 ? mem[mem.length - 1] : null;
+}
+
+// --------- EMOTION CORE ---------
+const EMOTION_RULES = {
+  priority: ["thakaan", "dukh", "bhram", "krodh", "khushi"],
+  keywords: {
+    thakaan: ["थक", "थक गया", "थकावट"],
+    dukh: ["दुख", "उदास", "अकेला", "भारी मन", "तकलीफ"],
+    bhram: ["समझ नहीं", "पता नहीं", "कन्फ्यूज", "भ्रम"],
+    krodh: ["गुस्सा", "नाराज़", "क्रोध"],
+    khushi: ["खुश", "अच्छा", "प्रसन्न"]
+  }
 };
 
-// ===== ON USER SPEAK =====
-recognition.onresult = (event) => {
-  const userText = event.results[0][0].transcript;
-  textBox.textContent = "आप: " + userText;
-
-  const reply = generateResponse(userText);
-  speak(reply);
-
-  status.textContent = "";
-};
-
-// ===== ERROR =====
-recognition.onerror = () => {
-  status.textContent = "आवाज़ स्पष्ट नहीं थी। फिर से बोलिए।";
-};
-
-// ===== FINAL CONVERSATIONAL CORE (LOCKED SPEC) =====
-function generateResponse(text) {
+function detectEmotion(text) {
   const t = text.toLowerCase();
-
-  const isQuestion =
-    t.includes("क्या") || t.includes("क्यों") || t.includes("कैसे");
-
-  const fatigue = t.includes("थक");
-  const sadness = t.includes("दुख") || t.includes("उदास") || t.includes("भारी");
-  const loneliness = t.includes("अकेल");
-  const confusion = t.includes("समझ नहीं") || t.includes("पता नहीं");
-  const happiness = t.includes("खुश") || t.includes("अच्छा");
-  const anger = t.includes("गुस्सा") || t.includes("नाराज़");
-
-  // --- भाव + मित्रवत प्रतिक्रिया ---
-  if (fatigue) {
-    return "लगता है आज आप बहुत कुछ झेल रहे हैं। थोड़ा रुककर साँस लेना भी अपने लिए जगह बनाना है। आप चाहें तो बताइए, क्या सबसे ज़्यादा थका रहा है?";
+  for (const emo of EMOTION_RULES.priority) {
+    const keys = EMOTION_RULES.keywords[emo];
+    if (keys.some(k => t.includes(k))) {
+      return emo;
+    }
   }
-
-  if (sadness) {
-    return "दुख के समय सलाह से ज़्यादा साथ ज़रूरी होता है। मैं यहीं हूँ। अगर कहना चाहें तो धीरे-धीरे कह सकते हैं।";
-  }
-
-  if (loneliness) {
-    return "अकेलापन चुपचाप भीतर बैठ जाता है। अभी इस पल में, आप अकेले नहीं हैं। क्या यह भावना हाल-फिलहाल ज़्यादा बढ़ी है?";
-  }
-
-  if (confusion && isQuestion) {
-    return "जब मन उलझा हो, तब तुरंत स्पष्टता नहीं मिलती। हम इसे साथ-साथ सुलझा सकते हैं। आप किस हिस्से को लेकर सबसे ज़्यादा अटके हैं?";
-  }
-
-  if (anger) {
-    return "गुस्सा अक्सर किसी गहरी थकान या चोट की आवाज़ होता है। अभी उसे बाहर आने देना भी ठीक है।";
-  }
-
-  if (happiness) {
-    return "यह सुनकर अच्छा लगा। ऐसे पल मन को हल्का कर देते हैं। आज की खुशी में सबसे अच्छा क्या लगा?";
-  }
-
-  // --- प्रश्न है लेकिन भावना स्पष्ट नहीं ---
-  if (isQuestion) {
-    return "यह अच्छा प्रश्न है। आप चाहें तो इसे थोड़ा और खोलकर कह सकते हैं, ताकि मैं ठीक से समझ सकूँ।";
-  }
-
-  // --- डिफ़ॉल्ट: खुला, मित्रवत, सुनने वाला ---
-  return "आप जो महसूस कर रहे हैं, उसे अपने शब्दों में कह सकते हैं। मैं ध्यान से सुन रही हूँ।";
+  return "normal";
 }
 
-// ===== TEXT TO SPEECH =====
-function speak(message) {
-  const utterance = new SpeechSynthesisUtterance(message);
-  utterance.lang = "hi-IN";
-  utterance.rate = 0.9;
-  utterance.pitch = 1.0;
-  speechSynthesis.speak(utterance);
+// --------- FRIEND BRAIN ---------
+function friendReply(userText) {
+  const emotion = detectEmotion(userText);
+  const previous = lastMemory();
+
+  let line1 = "मैं सुन रही हूँ।";
+  let line2 = "";
+  let line3 = "";
+
+  // ---- Emotion-based response ----
+  switch (emotion) {
+    case "dukh":
+      line2 = "लगता है मन आज थोड़ा भारी है।";
+      line3 = "क्या आज कुछ ऐसा हुआ जिसने आपको उदास कर दिया?";
+      break;
+
+    case "thakaan":
+      line2 = "थकान आपकी बातों में महसूस हो रही है।";
+      line3 = "आज दिन बहुत लंबा रहा क्या?";
+      break;
+
+    case "bhram":
+      line2 = "आप किसी उलझन में लग रहे हैं।";
+      line3 = "कौन-सी बात आपको साफ़ नहीं लग रही?";
+      break;
+
+    case "krodh":
+      line2 = "गुस्सा भीतर दबा हुआ सा लग रहा है।";
+      line3 = "अगर चाहें तो थोड़ी बात करके मन हल्का कर सकते हैं।";
+      break;
+
+    case "khushi":
+      line2 = "आपकी बातों में खुशी झलक रही है।";
+      line3 = "क्या कोई अच्छी खबर है जिसे साझा करना चाहेंगे?";
+      break;
+
+    default:
+      line2 = "मैं आपकी बात ध्यान से समझने की कोशिश कर रही हूँ।";
+      line3 = "आप आगे क्या कहना चाहेंगे?";
+  }
+
+  // ---- Memory continuity ----
+  if (previous && previous.emotion === emotion && emotion !== "normal") {
+    line2 = "लगता है यह भावना पहले भी आपके साथ थी।";
+  }
+
+  const reply = [line1, line2, line3].join(" ");
+
+  // ---- Save memory ----
+  saveMemory({
+    user: userText,
+    emotion: emotion,
+    reply: reply,
+    time: Date.now()
+  });
+
+  return reply;
 }
+
+// --------- UI CONTROL ---------
+document.getElementById("send").onclick = () => {
+  const inp = document.getElementById("inp");
+  const out = document.getElementById("out");
+
+  const text = inp.value.trim();
+  if (!text) return;
+
+  const response = friendReply(text);
+  out.textContent = response;
+  inp.value = "";
+};
