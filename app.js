@@ -1,76 +1,42 @@
-// ===== ELEMENTS =====
-const btn = document.getElementById("speakBtn");
-const status = document.getElementById("status");
-const textBox = document.getElementById("text");
-
-// ===== SPEECH RECOGNITION =====
-const SpeechRecognition =
-  window.SpeechRecognition || window.webkitSpeechRecognition;
-
-const recognition = new SpeechRecognition();
-recognition.lang = "hi-IN";
-recognition.interimResults = false;
-recognition.maxAlternatives = 1;
-
-// ===== BUTTON ACTION =====
-btn.onclick = () => {
-  status.textContent = "अंजली सुन रही है…";
-  recognition.start();
-};
-
-// ===== ON USER SPEAK =====
-recognition.onresult = (event) => {
-  const userText = event.results[0][0].transcript;
-  textBox.textContent = "आप: " + userText;
-
-  const reply = generateResponse(userText);
-  speak(reply);
-
-  status.textContent = "";
-};
-
-// ===== ERROR =====
-recognition.onerror = () => {
-  status.textContent = "आवाज़ स्पष्ट नहीं थी। फिर से बोलिए।";
-};
-
-// ===== RESPONSE CORE (NO REPEAT) =====
+// ===== RESPONSE CORE (DEEP + LOVE-CENTERED) =====
 function generateResponse(text) {
   const t = text.toLowerCase();
 
+  // Identity
   if (t.includes("कौन") || t.includes("तुम कौन")) {
-    return "मैं अंजली हूँ। आपसे शांति से बात करने के लिए यहाँ हूँ।";
+    return "मैं अंजली हूँ। शांति से, बिना जल्दी किए, आपकी बात सुनने के लिए।";
   }
 
+  // Fatigue
   if (t.includes("थक")) {
-    return "थकान महसूस होना स्वाभाविक है। थोड़ा रुकना भी ज़रूरी होता है।";
+    return "थकान अक्सर तब आती है जब मन बहुत कुछ संभाले रहता है। थोड़ा रुकना, अपने लिए भी ज़रूरी है।";
   }
 
+  // Sadness
   if (t.includes("दुख") || t.includes("उदास")) {
-    return "दुख के समय किसी का सुनना ज़्यादा मायने रखता है। मैं सुन रही हूँ।";
+    return "दुख के समय शब्द कम और साथ ज़्यादा मायने रखता है। आप चाहें तो मैं बस सुनती रहूँ।";
   }
 
+  // Loneliness
   if (t.includes("अकेल")) {
-    return "अकेलापन महसूस होना कठिन होता है। अभी आप अकेले नहीं हैं।";
+    return "अकेलापन भीतर से भारी लग सकता है। अभी इस पल में, आप पूरी तरह अकेले नहीं हैं।";
   }
 
+  // Confusion
+  if (t.includes("समझ नहीं") || t.includes("पता नहीं")) {
+    return "हर बात का तुरंत स्पष्ट होना ज़रूरी नहीं। कभी-कभी ठहरकर देखना ही उत्तर देता है।";
+  }
+
+  // Happiness
   if (t.includes("खुश") || t.includes("अच्छा")) {
-    return "यह सुनकर अच्छा लगा। ऐसे पल सहेज कर रखने चाहिए।";
+    return "यह सुनकर मन हल्का होता है। ऐसे क्षण धीरे-धीरे भीतर टिक जाते हैं।";
   }
 
-  if (t.includes("क्या कर")) {
-    return "मैं आपकी बात सुन रही हूँ और समझने की कोशिश कर रही हूँ।";
+  // Anger
+  if (t.includes("गुस्सा") || t.includes("नाराज़")) {
+    return "गुस्सा अक्सर किसी गहरी थकान या चोट का संकेत होता है। इसे थोड़ा समय देना ठीक है।";
   }
 
-  // DEFAULT — NON ECHO
-  return "आप जो कहना चाहते हैं, उसे थोड़ा और विस्तार से कह सकते हैं।";
-}
-
-// ===== TEXT TO SPEECH =====
-function speak(message) {
-  const utterance = new SpeechSynthesisUtterance(message);
-  utterance.lang = "hi-IN";
-  utterance.rate = 0.9;
-  utterance.pitch = 1.0;
-  speechSynthesis.speak(utterance);
+  // Default — warm, non-mechanical
+  return "आप जो महसूस कर रहे हैं, उसे अपने शब्दों में कह सकते हैं। मैं ध्यान से सुन रही हूँ।";
 }
