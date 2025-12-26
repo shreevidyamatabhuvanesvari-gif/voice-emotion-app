@@ -1,9 +1,8 @@
 // ===============================
-// FRIEND CORE — FINAL
-// PURPOSE: Two-friend style conversation with emotion + memory
+// FRIEND CORE — STABLE VERSION
 // ===============================
 
-// --------- MEMORY (LOCAL) ---------
+// ---- MEMORY ----
 const MEMORY_KEY = "FRIEND_APP_MEMORY";
 
 function loadMemory() {
@@ -22,100 +21,90 @@ function saveMemory(entry) {
 
 function lastMemory() {
   const mem = loadMemory();
-  return mem.length > 0 ? mem[mem.length - 1] : null;
+  return mem.length ? mem[mem.length - 1] : null;
 }
 
-// --------- EMOTION CORE ---------
-const EMOTION_RULES = {
-  priority: ["thakaan", "dukh", "bhram", "krodh", "khushi"],
-  keywords: {
-    thakaan: ["थक", "थक गया", "थकावट"],
-    dukh: ["दुख", "उदास", "अकेला", "भारी मन", "तकलीफ"],
-    bhram: ["समझ नहीं", "पता नहीं", "कन्फ्यूज", "भ्रम"],
-    krodh: ["गुस्सा", "नाराज़", "क्रोध"],
-    khushi: ["खुश", "अच्छा", "प्रसन्न"]
-  }
-};
-
+// ---- EMOTION DETECTION ----
 function detectEmotion(text) {
   const t = text.toLowerCase();
-  for (const emo of EMOTION_RULES.priority) {
-    const keys = EMOTION_RULES.keywords[emo];
-    if (keys.some(k => t.includes(k))) {
-      return emo;
-    }
-  }
+
+  if (t.includes("थक")) return "thakaan";
+  if (t.includes("दुख") || t.includes("उदास") || t.includes("अकेला")) return "dukh";
+  if (t.includes("समझ") || t.includes("पता नहीं")) return "bhram";
+  if (t.includes("गुस्सा") || t.includes("नाराज़")) return "krodh";
+  if (t.includes("खुश") || t.includes("अच्छा")) return "khushi";
+
   return "normal";
 }
 
-// --------- FRIEND BRAIN ---------
+// ---- FRIEND RESPONSE ----
 function friendReply(userText) {
   const emotion = detectEmotion(userText);
-  const previous = lastMemory();
+  const prev = lastMemory();
 
-  let line1 = "मैं सुन रही हूँ।";
-  let line2 = "";
-  let line3 = "";
+  let a = "मैं सुन रही हूँ।";
+  let b = "";
+  let c = "";
 
-  // ---- Emotion-based response ----
   switch (emotion) {
     case "dukh":
-      line2 = "लगता है मन आज थोड़ा भारी है।";
-      line3 = "क्या आज कुछ ऐसा हुआ जिसने आपको उदास कर दिया?";
+      b = "लगता है मन भारी है।";
+      c = "क्या आज कुछ ऐसा हुआ जो आपको दुख दे गया?";
       break;
 
     case "thakaan":
-      line2 = "थकान आपकी बातों में महसूस हो रही है।";
-      line3 = "आज दिन बहुत लंबा रहा क्या?";
+      b = "थकान महसूस हो रही है।";
+      c = "आज दिन ज़्यादा लंबा रहा क्या?";
       break;
 
     case "bhram":
-      line2 = "आप किसी उलझन में लग रहे हैं।";
-      line3 = "कौन-सी बात आपको साफ़ नहीं लग रही?";
+      b = "आप उलझन में लग रहे हैं।";
+      c = "किस बात ने आपको सोच में डाल दिया?";
       break;
 
     case "krodh":
-      line2 = "गुस्सा भीतर दबा हुआ सा लग रहा है।";
-      line3 = "अगर चाहें तो थोड़ी बात करके मन हल्का कर सकते हैं।";
+      b = "गुस्सा भीतर दबा हुआ सा है।";
+      c = "अगर चाहें तो थोड़ा बता सकते हैं।";
       break;
 
     case "khushi":
-      line2 = "आपकी बातों में खुशी झलक रही है।";
-      line3 = "क्या कोई अच्छी खबर है जिसे साझा करना चाहेंगे?";
+      b = "आपकी बातों में खुशी है।";
+      c = "कुछ अच्छा हुआ क्या?";
       break;
 
     default:
-      line2 = "मैं आपकी बात ध्यान से समझने की कोशिश कर रही हूँ।";
-      line3 = "आप आगे क्या कहना चाहेंगे?";
+      b = "मैं आपकी बात समझने की कोशिश कर रही हूँ।";
+      c = "आप आगे क्या कहना चाहेंगे?";
   }
 
-  // ---- Memory continuity ----
-  if (previous && previous.emotion === emotion && emotion !== "normal") {
-    line2 = "लगता है यह भावना पहले भी आपके साथ थी।";
+  if (prev && prev.emotion === emotion && emotion !== "normal") {
+    b = "लगता है यह भावना पहले भी बनी हुई थी।";
   }
 
-  const reply = [line1, line2, line3].join(" ");
+  const reply = a + " " + b + " " + c;
 
-  // ---- Save memory ----
   saveMemory({
     user: userText,
-    emotion: emotion,
-    reply: reply,
+    emotion,
+    reply,
     time: Date.now()
   });
 
   return reply;
 }
 
-// --------- UI CONTROL ---------
-document.getElementById("send").onclick = () => {
-  const inp = document.getElementById("inp");
-  const out = document.getElementById("out");
+// ---- UI BINDING (FIXED) ----
+window.onload = function () {
+  const sendBtn = document.getElementById("send");
+  const input = document.getElementById("inp");
+  const output = document.getElementById("out");
 
-  const text = inp.value.trim();
-  if (!text) return;
+  sendBtn.onclick = function () {
+    const text = input.value.trim();
+    if (!text) return;
 
-  const response = friendReply(text);
-  out.textContent = response;
-  inp.value = "";
+    const response = friendReply(text);
+    output.textContent = response;
+    input.value = "";
+  };
 };
