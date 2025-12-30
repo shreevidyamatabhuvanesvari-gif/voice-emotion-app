@@ -2,7 +2,7 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Anjali – Auto Listening</title>
+    <title>Anjali – Voice Interaction</title>
 </head>
 <body>
 
@@ -15,6 +15,7 @@
     <p id="response"></p>
 
     <script>
+        /* ---------- Speech Recognition (सुनना) ---------- */
         const SpeechRecognition =
             window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -33,6 +34,7 @@
             sendToBackend(spokenText);
         };
 
+        /* ---------- Backend से बात ---------- */
         function sendToBackend(text) {
             fetch("http://127.0.0.1:5000/chat", {
                 method: "POST",
@@ -44,7 +46,19 @@
             .then(res => res.json())
             .then(data => {
                 document.getElementById("response").innerText = data.reply;
+                speakResponse(data.reply);   // ← यहाँ आवाज़ जोड़ी गई
             });
+        }
+
+        /* ---------- Speech Synthesis (बोलना) ---------- */
+        function speakResponse(text) {
+            if (!text) return;
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = "hi-IN";
+
+            window.speechSynthesis.cancel(); // पुरानी आवाज़ बंद
+            window.speechSynthesis.speak(utterance);
         }
     </script>
 
