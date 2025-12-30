@@ -1,0 +1,28 @@
+package com.anjali.app
+
+import android.content.Context
+import android.speech.tts.TextToSpeech
+import java.util.Locale
+
+class VoiceSpeaker(context: Context) : TextToSpeech.OnInitListener {
+
+    private val tts = TextToSpeech(context, this)
+
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            tts.language = Locale("hi", "IN")
+            tts.setPitch(1.1f)   // मधुर
+            tts.setSpeechRate(0.9f)
+        }
+    }
+
+    fun speak(text: String) {
+        if (text.isNotBlank()) {
+            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+        }
+    }
+
+    fun shutdown() {
+        tts.shutdown()
+    }
+}
