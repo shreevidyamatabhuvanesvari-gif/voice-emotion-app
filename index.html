@@ -1,23 +1,62 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <title>Anjali – Voice App</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Anjali – Auto Listening Test</title>
 </head>
+<body>
 
-<body style="font-family:sans-serif; padding:20px;">
+    <h2>Anjali</h2>
 
-  <h2>अंजली</h2>
-  <p>नीचे बटन दबाकर बोलिए</p>
+    <!-- माइक्रोफोन से आया टेक्स्ट यहाँ दिखेगा -->
+    <input 
+        type="text" 
+        id="userInput" 
+        placeholder="बोलिए या लिखिए"
+    >
 
-  <button id="speakBtn" style="font-size:18px; padding:10px;">
-    🎤 बोलिए
-  </button>
+    <!-- Auto Listening बटन -->
+    <button onclick="startListening()">🎤 सुनिए</button>
 
-  <p id="status"></p>
-  <p id="text"></p>
+    <p id="response"></p>
 
-  <script src="app.js"></script>
+    <script>
+        // Web Speech API (निश्चित और स्टैंडर्ड)
+        const SpeechRecognition =
+            window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = "hi-IN";
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        function startListening() {
+            recognition.start();
+        }
+
+        // जब आवाज़ से टेक्स्ट मिले
+        recognition.onresult = function(event) {
+            const spokenText = event.results[0][0].transcript;
+            document.getElementById("userInput").value = spokenText;
+            sendToBackend(spokenText);
+        };
+
+        function sendToBackend(text) {
+            fetch("http://127.0.0.1:5000/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    message: text
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("response").innerText = data.reply;
+            });
+        }
+    </script>
+
 </body>
 </html>
