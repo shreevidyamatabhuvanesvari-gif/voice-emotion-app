@@ -2,65 +2,77 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Anjali – Voice Interaction</title>
+    <title>Anjali – Strict Voice Activation</title>
 </head>
 <body>
 
-    <h2>Anjali</h2>
+<h2>Anjali</h2>
 
-    <input type="text" id="userInput" placeholder="बोलिए या लिखिए">
+<button onclick="startListening()">🎤 सुनिए (अंजली बोलें)</button>
 
-    <button onclick="startListening()">🎤 सुनिए</button>
+<p><b>सुना गया:</b> <span id="heard"></span></p>
+<p><b>उत्तर:</b> <span id="response"></span></p>
 
-    <p id="response"></p>
+<script>
+/* ---------- Speech Recognition ---------- */
+const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    <script>
-        /* ---------- Speech Recognition (सुनना) ---------- */
-        const SpeechRecognition =
-            window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+recognition.lang = "hi-IN";
+recognition.continuous = false;
+recognition.interimResults = false;
 
-        const recognition = new SpeechRecognition();
-        recognition.lang = "hi-IN";
-        recognition.continuous = false;
-        recognition.interimResults = false;
+let lastReply = "";
 
-        function startListening() {
-            recognition.start();
-        }
+function startListening() {
+    recognition.start();
+}
 
-        recognition.onresult = function(event) {
-            const spokenText = event.results[0][0].transcript;
-            document.getElementById("userInput").value = spokenText;
-            sendToBackend(spokenText);
-        };
+/* ---------- सुनने के बाद ---------- */
+recognition.onresult = function(event) {
+    const spokenText = event.results[0][0].transcript;
+    document.getElementById("heard").innerText = spokenText;
 
-        /* ---------- Backend से बात ---------- */
-        function sendToBackend(text) {
-            fetch("http://127.0.0.1:5000/chat", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ message: text })
-            })
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById("response").innerText = data.reply;
-                speakResponse(data.reply);   // ← यहाँ आवाज़ जोड़ी गई
-            });
-        }
+    /* कठोर नियम: “अंजली” अनिवार्य */
+    if (!spokenText.includes("अंजली")) {
+        document.getElementById("response").innerText =
+            "सक्रिय होने के लिए 'अंजली' कहें।";
+        return;
+    }
 
-        /* ---------- Speech Synthesis (बोलना) ---------- */
-        function speakResponse(text) {
-            if (!text) return;
+    sendToBackend(spokenText);
+};
 
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = "hi-IN";
+/* ---------- Backend ---------- */
+function sendToBackend(text) {
+    fetch("http://127.0.0.1:5000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text })
+    })
+    .then(res => res.json())
+    .then(data => {
+        lastReply = data.reply;
+        document.getElementById("response").innerText = lastReply;
+        speak(lastReply);
+    });
+}
 
-            window.speechSynthesis.cancel(); // पुरानी आवाज़ बंद
-            window.speechSynthesis.speak(utterance);
-        }
-    </script>
+/* ---------- बोलना (Guaranteed) ---------- */
+function speak(text) {
+    if (!text) return;
+
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    const voices = speechSynthesis.getVoices();
+    const hindi = voices.find(v => v.lang.startsWith("hi"));
+    if (hindi) utterance.voice = hindi;
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+}
+</script>
 
 </body>
 </html>
