@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from anjali_brain import anjali_reply
 
 app = Flask(__name__)
 
@@ -7,10 +8,7 @@ def chat():
     data = request.get_json() or {}
     user_text = data.get("message", "")
 
-    if user_text == "":
-        reply = ""
-    else:
-        reply = user_text
+    reply = anjali_reply(user_text)
 
     return jsonify({
         "reply": reply
