@@ -1,67 +1,49 @@
-<!DOCTYPE html>
-<html lang="hi">
-<head>
-    <meta charset="UTF-8">
-    <title>Anjali – Voice Auto Active</title>
-</head>
-<body>
-
-<h2>Anjali</h2>
-
-<button onclick="startListening()">🎤 सुनिए</button>
-
-<p><b>सुना गया:</b> <span id="heard"></span></p>
-<p><b>उत्तर:</b> <span id="response"></span></p>
-
 <script>
-/* ---------- Speech Recognition ---------- */
-const SpeechRecognition =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
+let voicesLoaded = false;
+let cachedVoices = [];
 
-const recognition = new SpeechRecognition();
-recognition.lang = "hi-IN";
-recognition.continuous = false;
-recognition.interimResults = false;
-
-function startListening() {
-    recognition.start();
-}
-
-/* ---------- सुनने के बाद ---------- */
-recognition.onresult = function(event) {
-    const spokenText = event.results[0][0].transcript;
-    document.getElementById("heard").innerText = spokenText;
-    sendToBackend(spokenText);   // सीधे एक्टिव
+/* ---------- Voice Engine को force-load ---------- */
+window.speechSynthesis.onvoiceschanged = function () {
+    cachedVoices = window.speechSynthesis.getVoices();
+    voicesLoaded = true;
 };
 
-/* ---------- Backend ---------- */
-function sendToBackend(text) {
-    fetch("http://127.0.0.1:5000/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text })
-    })
-    .then(res => res.json())
-    .then(data => {
-        document.getElementById("response").innerText = data.reply;
-        speak(data.reply);
-    });
-}
-
-/* ---------- बोलना ---------- */
+/* ---------- Guaranteed Speak ---------- */
 function speak(text) {
-    if (!text) return;
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    let toSpeak = "";
 
-    const voices = speechSynthesis.getVoices();
-    const hindi = voices.find(v => v.lang.startsWith("hi"));
-    if (hindi) utterance.voice = hindi;
+    if (typeof text === "string") {
+        toSpeak = text.trim();
+    } else if (text !== null && text !== undefined) {
+        toSpeak = String(text);
+    }
 
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
+    if (toSpeak === "") {
+        toSpeak = "मैं सुन रही हूँ।";
+    }
+
+    function actuallySpeak() {
+        const utterance = new SpeechSynthesisUtterance(toSpeak);
+
+        const hindiVoice = cachedVoices.find(v => v.lang.startsWith("hi"));
+        if (hindiVoice) {
+            utterance.voice = hindiVoice;
+        }
+
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+    }
+
+    /* अगर voices अभी तक load नहीं हुई */
+    if (!voicesLoaded) {
+        setTimeout(() => {
+            cachedVoices = window.speechSynthesis.getVoices();
+            voicesLoaded = true;
+            actuallySpeak();
+        }, 300);
+    } else {
+        actuallySpeak();
+    }
 }
 </script>
-
-</body>
-</html>
