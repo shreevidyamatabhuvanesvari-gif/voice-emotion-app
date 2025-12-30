@@ -2,26 +2,19 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Anjali – Auto Listening Test</title>
+    <title>Anjali – Auto Listening</title>
 </head>
 <body>
 
     <h2>Anjali</h2>
 
-    <!-- माइक्रोफोन से आया टेक्स्ट यहाँ दिखेगा -->
-    <input 
-        type="text" 
-        id="userInput" 
-        placeholder="बोलिए या लिखिए"
-    >
+    <input type="text" id="userInput" placeholder="बोलिए या लिखिए">
 
-    <!-- Auto Listening बटन -->
     <button onclick="startListening()">🎤 सुनिए</button>
 
     <p id="response"></p>
 
     <script>
-        // Web Speech API (निश्चित और स्टैंडर्ड)
         const SpeechRecognition =
             window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -34,7 +27,6 @@
             recognition.start();
         }
 
-        // जब आवाज़ से टेक्स्ट मिले
         recognition.onresult = function(event) {
             const spokenText = event.results[0][0].transcript;
             document.getElementById("userInput").value = spokenText;
@@ -47,11 +39,9 @@
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({
-                    message: text
-                })
+                body: JSON.stringify({ message: text })
             })
-            .then(response => response.json())
+            .then(res => res.json())
             .then(data => {
                 document.getElementById("response").innerText = data.reply;
             });
