@@ -2,13 +2,13 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <title>Anjali – Strict Voice Activation</title>
+    <title>Anjali – Voice Auto Active</title>
 </head>
 <body>
 
 <h2>Anjali</h2>
 
-<button onclick="startListening()">🎤 सुनिए (अंजली बोलें)</button>
+<button onclick="startListening()">🎤 सुनिए</button>
 
 <p><b>सुना गया:</b> <span id="heard"></span></p>
 <p><b>उत्तर:</b> <span id="response"></span></p>
@@ -23,8 +23,6 @@ recognition.lang = "hi-IN";
 recognition.continuous = false;
 recognition.interimResults = false;
 
-let lastReply = "";
-
 function startListening() {
     recognition.start();
 }
@@ -33,15 +31,7 @@ function startListening() {
 recognition.onresult = function(event) {
     const spokenText = event.results[0][0].transcript;
     document.getElementById("heard").innerText = spokenText;
-
-    /* कठोर नियम: “अंजली” अनिवार्य */
-    if (!spokenText.includes("अंजली")) {
-        document.getElementById("response").innerText =
-            "सक्रिय होने के लिए 'अंजली' कहें।";
-        return;
-    }
-
-    sendToBackend(spokenText);
+    sendToBackend(spokenText);   // सीधे एक्टिव
 };
 
 /* ---------- Backend ---------- */
@@ -53,13 +43,12 @@ function sendToBackend(text) {
     })
     .then(res => res.json())
     .then(data => {
-        lastReply = data.reply;
-        document.getElementById("response").innerText = lastReply;
-        speak(lastReply);
+        document.getElementById("response").innerText = data.reply;
+        speak(data.reply);
     });
 }
 
-/* ---------- बोलना (Guaranteed) ---------- */
+/* ---------- बोलना ---------- */
 function speak(text) {
     if (!text) return;
 
