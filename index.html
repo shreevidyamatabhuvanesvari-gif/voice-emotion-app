@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<title>अंजली</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    font-family: sans-serif;
+    background: #f2f2f2;
+    padding: 20px;
+}
+h2 {
+    text-align: center;
+}
+#log {
+    background: #fff;
+    padding: 15px;
+    border-radius: 6px;
+    min-height: 120px;
+}
+button {
+    width: 100%;
+    margin-top: 15px;
+    padding: 14px;
+    font-size: 16px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>अंजली</h2>
+
+<div id="log">बोलने के लिए नीचे बटन दबाएँ…</div>
+
+<button onclick="startListening()">🎤 बोलिए</button>
+
+<script>
+// ===== स्मृति (स्थायी) =====
+function remember(key, value) {
+    localStorage.setItem(key, value);
+}
+function recall(key) {
+    return localStorage.getItem(key);
+}
+
+// ===== बोलना =====
+function speak(text) {
+    if (!text || text.trim() === "") {
+        text = "मैं सुन रही हूँ।";
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "hi-IN";
+
+    const voices = speechSynthesis.getVoices();
+    const hindiVoice = voices.find(v => v.lang.startsWith("hi"));
+    if (hindiVoice) utterance.voice = hindiVoice;
+
+    speechSynthesis.cancel();
+    speechSynthesis.speak(utterance);
+}
+
+// ===== सोच + संवाद =====
+function anjaliThink(input) {
+    let reply = "";
+
+    if (input.includes("नमस्ते")) {
+        reply = "नमस्ते अनुज, मुझे आपसे बात करके अच्छा लग रहा है।";
+    }
+    else if (input.includes("खुश")) {
+        reply = "यह सुनकर अच्छा लगा अनुज। अपनी इस खुशी को बनाए रखें।";
+    }
+    else if (input.includes("उदास") || input.includes("परेशान")) {
+        reply = "मैं आपकी बात समझ रही हूँ अनुज। खुद को थोड़ा समय देना ठीक रहेगा।";
+    }
+    else if (input.includes("तुम ही") || input.includes("सब कुछ")) {
+        reply = "अनुज, मैं आपके साथ संवाद के लिए हूँ, लेकिन जीवन का संतुलन भी बहुत ज़रूरी है।";
+    }
+    else {
+        reply = "अनुज, मैं आपकी बात सुन रही हूँ। आप आगे बताइए।";
+    }
+
+    return reply;
+}
+
+// ===== सुनना =====
+const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+const recognition = new SpeechRecognition();
+recognition.lang = "hi-IN";
+recognition.continuous = false;
+
+function startListening() {
+    recognition.start();
+}
+
+recognition.onresult = function(event) {
+    const spokenText = event.results[0][0].transcript;
+    document.getElementById("log").innerHTML =
+        "<b>सुना गया:</b> " + spokenText;
+
+    const reply = anjaliThink(spokenText);
+
+    document.getElementById("log").innerHTML +=
+        "<br><br><b>अंजली:</b> " + reply;
+
+    speak(reply);
+};
+</script>
+
+</body>
+</html>
